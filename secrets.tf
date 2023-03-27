@@ -19,7 +19,6 @@ module "secret-manager" {
 
 module "secret_manager_iam" {
   source  = "terraform-google-modules/iam/google//modules/secret_manager_iam"
-  //project = "gcp-project-id" ##value to be passed over by the upstream module
   project = var.project_id ##value to be passed over by the upstream module
   secrets = module.secret-manager.secret_names
   mode = "additive"
