@@ -12,11 +12,13 @@ module "secret_manager" {
 
 module "secret_manager_iam" {
   source  = "terraform-google-modules/iam/google//modules/secret_manager_iam"
+  for_each             = { for secret in lookup(var.secret_manager, "secrets") : secret.name => secret }
+  secrets              = [each.value.name]
   project              = var.project_id
-  secrets              = module.secret_manager.secret_names ##from variable secrets or from module???
   mode                 = lookup(var.secret_manager_iam, "mode", "additive")
   bindings             = lookup(var.secret_manager_iam, "bindings", {})
   conditional_bindings = lookup(var.secret_manager_iam, "conditional_bindings", [])
+
 
   depends_on = [
     module.secret_manager
