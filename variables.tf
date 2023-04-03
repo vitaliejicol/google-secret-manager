@@ -23,7 +23,7 @@ variable "secret_manager_iam" {
         mode = "additive"
         bindings = {
             "roles/secretmanager.secretAccessor" = [
-              "serviceAccount:my-sa@my-project.iam.gserviceaccount.com",
+              "serviceAccount:my-sa@gcp-sa-secretmanager.iam.gserviceaccount.com",
             ]
         }
         conditional_bindings = []
