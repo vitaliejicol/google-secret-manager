@@ -1,38 +1,24 @@
-resource "google_project_service_identity" "secretmanager_identity" {
-  provider = google-beta
-  project  = var.project_id ##value to be passed over by the upstream module
-  service  = "secretmanager.googleapis.com"
-}
-
-module "secret-manager" {
+module "secret_manager" {
   source  = "GoogleCloudPlatform/secret-manager/google"
   version = "~> 0.1"
-  project_id = var.project_id ##value to be passed over by the upstream module
-  secrets = [
-    {
-      name                     = "secret-1" ##to be passed over by the up-stream module
-      automatic_replication    = false
-      secret_data              = "secret informationew" ##to be determined how fetch the secret value
-    }
-  ]
+  project_id               = var.project_id
+  secrets                  = lookup(var.secret_manager, "secrets", [])
+  user_managed_replication = lookup(var.secret_manager, "user_managed_replication", {})
+  topics                   = lookup(var.secret_manager, "topics", {})
+  labels                   = lookup(var.secret_manager, "labels", {})
+  add_kms_permissions      = lookup(var.secret_manager, "add_kms_permissions", [])
+  add_pubsub_permissions   = lookup(var.secret_manager, "add_pubsub_permissions", [])
 }
 
 module "secret_manager_iam" {
   source  = "terraform-google-modules/iam/google//modules/secret_manager_iam"
-  project = var.project_id ##value to be passed over by the upstream module
-  secrets = module.secret-manager.secret_names
-  mode = "additive"
+  project              = var.project_id
+  secrets              = module.secret_manager.secret_names ##from variable secrets or from module???
+  mode                 = lookup(var.secret_manager_iam, "mode", "additive")
+  bindings             = lookup(var.secret_manager_iam, "bindings", {})
+  conditional_bindings = lookup(var.secret_manager_iam, "conditional_bindings", [])
 
-  bindings = {
-    "roles/secretmanager.secretAccessor" = [
-      "serviceAccount:${google_project_service_identity.secretmanager_identity.email}"
-    ]
-
-    "roles/secretmanager.viewer" = [
-      "user:myemail@gmail.com"
-    ]
-  }
   depends_on = [
-    module.secret-manager
+    module.secret_manager
   ]
 }
